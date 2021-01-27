@@ -2,6 +2,7 @@ package com.github.bluelink.restapi.utils;
 
 import com.github.bluelink.restapi.model.serialize.NoSerializableChild;
 import com.github.bluelink.restapi.model.serialize.SerializableChild;
+import com.github.bluelink.restapi.model.serialize.SerializeObjectMather;
 import org.junit.jupiter.api.Test;
 
 import java.io.NotSerializableException;
@@ -10,9 +11,9 @@ import static org.assertj.core.api.Assertions.*;
 
 public class TestSerializeUtil {
 
-  SerializableChild serializableChild = new SerializableChild();
+  SerializableChild serializableChild = SerializeObjectMather.getSerializableChild();
 
-  NoSerializableChild noSerializableChild = new NoSerializableChild();
+  NoSerializableChild noSerializableChild = SerializeObjectMather.getNoSerializableChild();
 
   byte[] serializableChildSerializeResult = null;
 
@@ -34,7 +35,7 @@ public class TestSerializeUtil {
   // This test make sure deserialize can work without exception
   // TODO this test must create object mother for test, or it will always return null
   void testSerializeUtilsDeserializeObjectWithoutException() throws Exception{
-
+    assertThat(SerializeUtils.deserialize(serializableChildSerializeResult)).isEqualTo(serializableChild);
   }
 
   // This test make sure when deserialize byte array, it origin object didn't implements Serializable interface will return expect exception
