@@ -15,7 +15,7 @@ public class TestSerializeUtil {
 
   NoSerializableChild noSerializableChild = SerializeObjectMather.getNoSerializableChild();
 
-  byte[] serializableChildSerializeResult = null;
+  String serializableChildSerializeResult = null;
 
   // This test make sure serialize can work without exception
   @Test

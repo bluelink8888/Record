@@ -1,5 +1,7 @@
 package com.github.bluelink.restapi.utils;
 
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class SerializeUtils {
 
-  public static byte[] serializeObject(Object object) throws Exception{
+  public static String serializeObject(Object object) throws Exception{
 
     // This map record all class implement interface, include it super class.
     Map<String, List<String>> classImplementInterfaceNameMap = new HashMap<>();
@@ -52,22 +54,25 @@ public class SerializeUtils {
       System.err.println("SerializeObject error : " + e.getMessage());
     }
 
-    return bao.toByteArray();
+    return Base64.encodeBase64String(bao.toByteArray());
   }
 
-  public static Object deserialize(byte[] bytes) throws Exception{
+  public static Object deserialize(String base64String) throws Exception{
 
     ByteArrayInputStream bais = null;
     ObjectInputStream ois = null;
     Object result = null;
 
     try {
-      bais = new ByteArrayInputStream(bytes);
+      byte[] byteArrayFromBase64Decode = Base64.decodeBase64(base64String);
+      bais = new ByteArrayInputStream(byteArrayFromBase64Decode);
       ois = new ObjectInputStream(bais);
       result = ois.readUnshared();
     } catch (Exception e) {
       if (e instanceof NotSerializableException) {
         throw new NotSerializableException("Can not deserialize this object, please double you class and its super class");
+      } else {
+        System.err.println("Deserialize error : " + e.getMessage());
       }
     }
 
