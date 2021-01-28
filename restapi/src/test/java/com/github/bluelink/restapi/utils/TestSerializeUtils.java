@@ -9,7 +9,7 @@ import java.io.NotSerializableException;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class TestSerializeUtil {
+public class TestSerializeUtils {
 
   SerializableChild serializableChild = SerializeObjectMather.getSerializableChild();
 
