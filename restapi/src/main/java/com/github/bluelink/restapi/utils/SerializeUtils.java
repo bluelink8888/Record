@@ -21,11 +21,15 @@ public class SerializeUtils {
         .map(Class::getName).collect(Collectors.toList()));
     // interface list implements by objects' super class
     boolean isChildClass = true;
+
+    Class superClass = object.getClass().getSuperclass();
     while (isChildClass){
-      Class superClass = object.getClass().getSuperclass();
-      classImplementInterfaceNameMap.put(superClass.getName(), Arrays.stream(superClass.getInterfaces())
-          .map(Class::getName).collect(Collectors.toList()));
-      isChildClass = object.getClass().getSuperclass().getName().equals("java.lang.Object");
+      isChildClass = !superClass.getName().equals("java.lang.Object");
+      if (isChildClass) {
+        classImplementInterfaceNameMap.put(superClass.getName(), Arrays.stream(superClass.getInterfaces())
+            .map(Class::getName).collect(Collectors.toList()));
+        superClass = Class.forName(superClass.getSuperclass().getName());
+      }
     }
 
     Map<String, List<String>> classImplementedSerializableMap = classImplementInterfaceNameMap.entrySet().stream().filter(map->{
