@@ -25,4 +25,5 @@ It's base three layer project, controller ,service and repository. Common mvc st
 > And message queue will prevent database crash because huge data updating job.
  
 ### Reference
-    My eztravel coding life.
+* My eztravel coding life.
+* [LZ4](https://github.com/lz4/lz4-java) - LZ4 for archive data
