@@ -1,29 +1,23 @@
 package com.github.bluelink.restapi.utils;
 
+import java.util.Arrays;
+import org.apache.commons.codec.binary.Base64;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4SafeDecompressor;
-import org.apache.commons.codec.binary.Base64;
-
-import java.util.Arrays;
 
 public class LZ4ArchiveUtils {
 
   /**
    *  <pre>
-   *    This method input value must serialize before.
-   *    It will return a string encode by base64 and compress by LZ4.
-   *    So return must decode before then decompress it.
+   *  This method using LZ4 library compress input byte array.
+   *  Base64 encode it after compress
    *  </pre>
    *
-   * @param data
-   * @return
+   * @param data something you want compress
+   * @return compress result and encode by apache Base64
    */
-  public static String compress(String data){
-    // Compress must serialize object before
-    // Because data already encode by apache base54, so here should decode before compress
-    byte[] dataDecodeBase64 = Base64.decodeBase64(data);
-
+  public static String compress(byte[] data) {
     Integer decompressedLength = null;
     Integer maxCompressedLength = null;
     Integer compressedLength = null;
@@ -32,63 +26,59 @@ public class LZ4ArchiveUtils {
 
     try {
       LZ4Factory factory = LZ4Factory.safeInstance();
-      decompressedLength = dataDecodeBase64.length;
+      decompressedLength = data.length;
       LZ4Compressor compressor = factory.highCompressor();
       maxCompressedLength = compressor.maxCompressedLength(decompressedLength);
       compressed = new byte[maxCompressedLength];
-      result = Base64.encodeBase64String(compressed);
+      compressedLength = compressor.compress(data, 0, decompressedLength, compressed, 0, maxCompressedLength);
+      result = Base64.encodeBase64String(Arrays.copyOf(compressed, compressedLength));
     } catch (Exception e) {
-      System.err.println("Compress error : " + e.getMessage());
+      e.printStackTrace();
     } finally {
-      if (decompressedLength != null)
-        decompressedLength = null;
-      if (maxCompressedLength != null)
-        maxCompressedLength = null;
-      if (compressedLength != null)
-        compressedLength = null;
-      if (compressed != null)
-        compressed = null;
+      if (decompressedLength != null) decompressedLength = null;
+      if (maxCompressedLength != null) maxCompressedLength = null;
+      if (compressedLength != null) compressedLength = null;
+      if (compressed != null) compressed = null;
     }
 
     return result;
   }
 
+
   /**
-   * <pre>
-   *  This method will decodeBase64 first then decompress input value
-   * </pre>
    *
-   * @param data
-   * @return
+   *  <pre>
+   *    This method create for decompress value after compress method.
+   *    It will decode before decompress, then return value before compressed.
+   *  </pre>
+   *
+   * @param compressResultBase64Encoded the value after compress method
+   * @return value before compressed
    */
-  public static String safeDecompress(String data){
-    byte[] dataDecodeBase64 = null;
+  public static byte[] decompress(String compressResultBase64Encoded) {
+    final int decompressLenghtRate = 10; // assume got 1/10 compress ratio
+    byte[] compressResultBase64Decoded = null;
     Integer decompressedLength = null;
     Integer decompressLength = null;
     byte[] restored = null;
-    String result = null;
+    byte[] result = null;
 
     try {
-      dataDecodeBase64 = Base64.decodeBase64(data);
-      decompressedLength = dataDecodeBase64.length;
+      // Must decode because compress already encode by apache Base64
+      compressResultBase64Decoded = Base64.decodeBase64(compressResultBase64Encoded);
+      decompressedLength = compressResultBase64Decoded.length * decompressLenghtRate;
       LZ4Factory factory = LZ4Factory.safeInstance();
       LZ4SafeDecompressor decompressor = factory.safeDecompressor();
       restored = new byte[decompressedLength];
-      decompressLength = decompressor.decompress(dataDecodeBase64, 0, dataDecodeBase64.length, restored, 0);
-      result = Base64.encodeBase64String(Arrays.copyOf(restored, decompressLength));
-    } catch (OutOfMemoryError me) {
-      System.err.println("SafeDecompress out of memory error : " + me.getMessage());
-    } catch (Exception e){
-      System.err.println("SafeDecompress other error : " + e.getMessage());
+      decompressLength = decompressor.decompress(compressResultBase64Decoded, 0, compressResultBase64Decoded.length, restored, 0);
+      result = Arrays.copyOf(restored, decompressLength);
+    } catch (OutOfMemoryError e) {
+      e.printStackTrace();
     } finally {
-      if (dataDecodeBase64 != null)
-        dataDecodeBase64 = null;
-      if (decompressedLength != null)
-        decompressedLength = null;
-      if (restored != null)
-        restored = null;
-      if (decompressLength != null)
-        decompressLength = null;
+      if (compressResultBase64Decoded != null) compressResultBase64Decoded = null;
+      if (decompressedLength != null) decompressedLength = null;
+      if (restored != null) restored = null;
+      if (decompressLength != null) decompressLength = null;
     }
 
     return result;
